@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101114">
+  <meta name="description" content="An open-source starter interface for AI image and video generation.">
+  <title>Open Studio — AI media playground</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101114;
+      --panel: #191a20;
+      --panel-soft: #202127;
+      --text: #f4f3f8;
+      --muted: #a4a3af;
+      --accent: #c4a7ff;
+      --border: #34343e;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(ellipse at 50% -20%, #302744 0, var(--bg) 55%); color: var(--text); }
+    .wrap { width: min(100% - 32px, 920px); margin: 0 auto; padding: 28px 0 48px; }
+    header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 34px; }
+    .brand { font-size: 1.05rem; font-weight: 750; letter-spacing: .02em; }
+    .badge { border: 1px solid var(--border); color: var(--muted); border-radius: 999px; padding: 6px 10px; font-size: .75rem; }
+    h1 { margin: 0; text-align: center; font-size: clamp(2rem, 8vw, 3.4rem); letter-spacing: -.05em; }
+    .intro { margin: 10px auto 28px; max-width: 560px; text-align: center; line-height: 1.6; color: var(--muted); }
+    .card { background: color-mix(in srgb, var(--panel) 95%, transparent); border: 1px solid var(--border); border-radius: 20px; padding: clamp(16px, 4vw, 26px); box-shadow: 0 18px 70px #0004; }
+    .label { display: block; margin: 0 0 9px; font-size: .9rem; font-weight: 650; }
+    .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 22px; }
+    button, select, textarea, .upload { font: inherit; }
+    .mode { min-height: 44px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel-soft); color: var(--muted); cursor: pointer; }
+    .mode[aria-pressed="true"] { color: var(--text); border-color: var(--accent); background: #30283e; }
+    textarea, select { width: 100%; color: var(--text); background: #111217; border: 1px solid var(--border); border-radius: 12px; padding: 13px 14px; outline: none; }
+    textarea { min-height: 118px; resize: vertical; line-height: 1.5; }
+    textarea:focus, select:focus { border-color: var(--accent); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; }
+    .upload { display: block; width: 100%; padding: 11px; color: var(--muted); background: #111217; border: 1px dashed #555460; border-radius: 12px; }
+    .upload[hidden] { display: none; }
+    .hint { margin: 8px 0 0; color: var(--muted); font-size: .78rem; line-height: 1.5; }
+    .generate { width: 100%; margin-top: 22px; min-height: 48px; border: 0; border-radius: 12px; color: #191321; background: var(--accent); font-weight: 750; cursor: pointer; }
+    .generate:hover { filter: brightness(1.08); }
+    .notice { margin-top: 16px; padding: 12px 14px; border-radius: 12px; background: #25212e; color: #ded0ff; font-size: .88rem; line-height: 1.5; }
+    .notice[hidden] { display: none; }
+    .preview { margin-top: 22px; min-height: 150px; display: grid; place-items: center; border: 1px dashed var(--border); border-radius: 16px; color: var(--muted); text-align: center; padding: 20px; }
+    footer { margin-top: 20px; color: var(--muted); font-size: .8rem; line-height: 1.6; text-align: center; }
+    footer a { color: var(--accent); }
+    @media (max-width: 560px) { .wrap { width: min(100% - 22px, 920px); padding-top: 18px; } header { margin-bottom: 28px; } .row { grid-template-columns: 1fr; } .modes { gap: 6px; } .mode { font-size: .82rem; padding: 4px; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div class="brand">✦ Open Studio</div>
+      <span class="badge">Open-source starter</span>
+    </header>
+    <h1>Make something<br>imaginative.</h1>
+    <p class="intro">A simple, mobile-friendly starting point for an AI image and video creation app.</p>
+
+    <section class="card" aria-label="Generation settings">
+      <span class="label">Choose a creation mode</span>
+      <div class="modes" role="group" aria-label="Creation mode">
+        <button class="mode" type="button" data-mode="text-image" aria-pressed="true">Text to image</button>
+        <button class="mode" type="button" data-mode="text-video" aria-pressed="false">Text to video</button>
+        <button class="mode" type="button" data-mode="image-video" aria-pressed="false">Image to video</button>
+      </div>
+
+      <label class="label" for="prompt">Your prompt</label>
+      <textarea id="prompt" maxlength="1200" placeholder="Describe what you want to create..."></textarea>
+
+      <div class="row">
+        <div>
+          <label class="label" for="model">Model</label>
+          <select id="model">
+            <option value="flux">FLUX (image)</option>
+            <option value="sdxl">SDXL (image)</option>
+            <option value="wan">Wan (video)</option>
+          </select>
+          <p class="hint" id="model-hint">Model availability and licenses depend on the provider and model version.</p>
+        </div>
+        <div>
+          <label class="label" for="image">Starting image <span id="optional-label">(optional)</span></label>
+          <input class="upload" id="image" type="file" accept="image/*" hidden>
+          <label class="upload" for="image" id="upload-label">Choose an image from your phone</label>
+          <p class="hint" id="upload-hint">Needed for image-to-video mode.</p>
+        </div>
+      </div>
+      <button class="generate" id="generate" type="button">Set up generation</button>
+      <div class="notice" id="notice" role="status" hidden></div>
+      <div class="preview" id="preview">Your generated image or video will appear here once a generation service is connected.</div>
+    </section>
+    <footer>
+      This page is only the user interface; generation is not connected yet. A cloud inference provider or your own GPU server is required.<br>
+      Never put private API keys in this public page. <a href="https://github.com/4u-only/Open-ai">View the source on GitHub</a>.
+    </footer>
+  </main>
+  <script>
+    const modeButtons = [...document.querySelectorAll('.mode')];
+    const uploadInput = document.querySelector('#image');
+    const uploadLabel = document.querySelector('#upload-label');
+    const uploadHint = document.querySelector('#upload-hint');
+    const model = document.querySelector('#model');
+    const notice = document.querySelector('#notice');
+    let currentMode = 'text-image';
+
+    function updateMode(mode) {
+      currentMode = mode;
+      modeButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === mode)));
+      const needsImage = mode === 'image-video';
+      uploadInput.hidden = !needsImage;
+      uploadLabel.hidden = !needsImage;
+      uploadHint.hidden = !needsImage;
+      model.value = mode === 'text-image' ? 'flux' : mode === 'text-video' ? 'wan' : 'wan';
+    }
+    modeButtons.forEach(button => button.addEventListener('click', () => updateMode(button.dataset.mode)));
+    uploadInput.addEventListener('change', () => {
+      uploadLabel.textContent = uploadInput.files?.[0]?.name || 'Choose an image from your phone';
+    });
+    model.addEventListener('change', () => {
+      const videoMode = model.value === 'wan';
+      document.querySelector('#model-hint').textContent = videoMode
+        ? 'Wan is a video model family; the exact version and access depend on the provider.'
+        : 'FLUX and SDXL are image model families; versions have different licenses and requirements.';
+    });
+    document.querySelector('#generate').addEventListener('click', () => {
+      const prompt = document.querySelector('#prompt').value.trim();
+      if (!prompt) {
+        notice.textContent = 'Add a prompt first. Generation will work after a backend/provider is connected.';
+      } else if (currentMode === 'image-video' && !uploadInput.files.length) {
+        notice.textContent = 'Choose a starting image for image-to-video mode. Generation is not connected yet.';
+      } else {
+        notice.textContent = 'Your page is ready for the next step: connect a generation backend. No prompt or image is being sent anywhere yet.';
+      }
+      notice.hidden = false;
+    });
+  </script>
+</body>
+</html>
